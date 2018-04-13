@@ -1,0 +1,15 @@
+services:
+    cache_mock_service:
+        parent: cache.adapter.redis
+        class: FrontendBundle\Test\CacheMockService
+
+    nc.var_export_extension:
+        class: FrontendBundle\Twig\VarExportExtension
+        public: false
+        tags:
+            - { name: twig.extension }
+
+    nc.validator.raise_by_percentage:
+        class: FrontendBundle\Form\Constraints\RaiseByPercentageValidator
+        tags:
+            - { name: "validator.constraint_validator", alias: "nc.validator.raise_by_percentage" }

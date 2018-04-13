@@ -1,0 +1,117 @@
+{% extends '::base.html.twig' %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function updateQueueStatus()
+        {
+            var $queueStatusContainer = $('#queue-status-container');
+
+            $.ajax('{{ path('frontend_queue_status') }}', {
+                success: function (response) {
+                    var newContent = '';
+                    var statusInfo = JSON.parse(response);
+                    for(var id in statusInfo) {
+                        newContent += '<u>' + id + '</u><br>jobs: ' + statusInfo[id].jobs + ', consumers: ' + statusInfo[id].consumers + '<br><br>'
+                    }
+                    newContent += '';
+                    $queueStatusContainer.html(newContent);
+                    setTimeout(updateQueueStatus, 50000);
+                }
+            });
+        }
+
+        updateQueueStatus();
+    </script>
+    <script src="{{ asset('bundles/frontend/js/FeedTicker.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+    <div class="row" id="home-list-view">
+        <div class="col-md-9">
+            <div class="row">
+                <div class="col-md-6">
+                    <h2>Last Trainings</h2>
+                    <div class="row">
+                        {% for trainingRun in trainingRuns %}
+                            <div class="col-md-12">
+                                <div class="well">
+                                    <h3>Network: {{ trainingRun.network.name }}</h3>
+                                    <table class="table">
+                                        <tr>
+                                            <th>Status:</th>
+                                            <td>{{ trainingRun.status }}</td>
+                                        </tr>
+                                        {% if trainingRun.status == 'finished' %}
+                                            <tr>
+                                                <th>Duration:</th>
+                                                <td>{{ trainingRun.duration }} seconds</td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <th>Started:</th>
+                                                <td>{{ trainingRun.startedAt|date('m.d, H:i') }}</td>
+                                            </tr>
+                                        {% endif %}
+                                    </table>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h2>Last Predictions</h2>
+                    <div class="row">
+                        {% for prediction in predictions %}
+                            <div class="col-md-12">
+                                <div class="well">
+                                    <h3>Network: {{ prediction.network.name }}</h3>
+                                    <table class="table">
+                                        <tr>
+                                            <th>Price <small>(predicted / actual)</small>:</th>
+                                            <td>{{ prediction.predictedValue}}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Change <small>(predicted / actual)</small>:</th>
+                                            <td>{{ prediction.predictedChange }}{% if prediction.predictedChange %}%{% endif %} / {{ prediction.actualChange }}{% if prediction.actualChange %}%{% endif %}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="well" id="feed-ticker-container" data-ticker-host="{{ websocket_server }}">
+                <h2>latest quotes</h2>
+                <div class="pull-right">
+                    <span id="ticker-highchangemode-button" class="glyphicon glyphicon-fire" data-status="0"></span>
+                    <span id="ticker-pause-button" class="glyphicon glyphicon-pause" data-status="unpaused"></span>
+                </div>
+                <div id="container-latest-quotes"></div>
+                <table class="table" id="latest-quotes-table">
+                    <tr>
+                        <th>Exchange</th>
+                        <th>Symbol</th>
+                        <th>Price</th>
+                    </tr>
+                    <tr id="feed-maker-row" class="hidden"></tr>
+                    <tr class="hidden latest-quotes-row">
+                        <td class="exchange-cell"></td>
+                        <td class="symbol-cell small">
+                            <a href="#"></a>
+                        </td>
+                        <td class="price-cell"></td>
+                    </tr>
+                </table>
+                <h2>Queue status:</h2>
+                <div id="queue-status-container"></div>
+            </div>
+        </div>
+    </div>
+
+{% endblock body %}

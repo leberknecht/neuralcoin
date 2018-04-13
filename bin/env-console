@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+SF_ENV=$(cat .sfenv)
+CMD="$@ --env $SF_ENV"
+echo "spawning command: $CMD"
+bin/console $CMD

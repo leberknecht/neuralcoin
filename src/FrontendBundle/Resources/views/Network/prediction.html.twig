@@ -1,0 +1,72 @@
+{% extends '::base.html.twig' %}
+
+{% block sub_menu %}
+    {% set sub_menu = knp_menu_get('FrontendBundle:Builder:networkMenu', {}, {'network': prediction.network}) %}
+    {{ knp_menu_render(sub_menu)  }}
+{% endblock %}
+
+{% block javascripts %}
+
+    {{ parent() }}
+    <script>
+        var url = window.location.href;
+        function updateStatus()
+        {
+            $.ajax(url).done(function(response){
+                var newContent = $(response).find('#prediction-status-container');
+                $('#prediction-status-container').replaceWith(newContent);
+            });
+            if($('span.no-need-to-refresh ').length == 0) {
+                setTimeout(updateStatus, 15000);
+            }
+        }
+        setTimeout(updateStatus, 15000);
+    </script>
+{% endblock javascripts %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Predicted output:</h1>
+            <table class="table" id="prediction-status-container">
+                <tr>
+                    <th>Status:</th>
+                    <td>
+                        {% if  prediction.outputData is empty %}
+                            preparing...&nbsp;<span class="glyphicon glyphicon glyphicon-hourglass"></span>
+                        {% elseif prediction.finished %}
+                            done.<span class="no-need-to-refresh glyphicon glyphicon glyphicon-ok"></span>
+                        {% elseif prediction.predictedChange or prediction.outputData %}
+                            waiting...&nbsp;<span class="glyphicon glyphicon glyphicon-hourglass"></span>
+                        {% else %}
+                            created, waiting for processing&nbsp;<span class="no-need-to-refresh glyphicon glyphicon glyphicon-hourglass"></span>
+                        {% endif %}
+                    </td></tr>
+                <tr>
+                    <th>Raw:</th>
+                    <td>
+                        [{{ prediction.outputData|join(', ') }}]
+
+                    </td>
+                </tr>
+                <tr><th>Predicted Price/Value</th><td>{{ prediction.predictedValue }}</td></tr>
+                <tr><th>Price at prediction</th><td>{{ prediction.priceAtPrediction }}</td></tr>
+                <tr>
+                    <th>predicted change</th>
+                    <td>{{ prediction.predictedChange }} %</td>
+                </tr>
+                <tr><th>Actual change</th><td>{{ prediction.actualChange }} %</td></tr>
+                <tr>
+                    <th>Raw input data:</th>
+                    <td>
+                        {% if prediction.inputData %}
+                            <pre>{{ prediction.inputData|var_export }}</pre>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+{% endblock body %}

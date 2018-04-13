@@ -1,0 +1,39 @@
+#trading-tools h2 {
+    font-size: 20px;
+    margin-top: 0;
+}
+
+#trading-tools .well
+{
+    background-color: transparent;
+    min-height: 320px;
+}
+
+#feed-ticker-container td
+{
+    border-top: none;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+#feed-ticker-container th:nth-child(2) {
+    padding-left: 2px;
+}
+
+#feed-ticker-container tr {
+    border: none;
+}
+
+#feed-ticker-container .exchange-cell {
+    padding-left: 2px;
+}
+
+#feed-ticker-container .symbol-cell
+{
+    padding: 5px 3px 0 3px;
+}
+
+#feed-ticker-container .price-cell
+{
+    padding-left: 4px;
+}

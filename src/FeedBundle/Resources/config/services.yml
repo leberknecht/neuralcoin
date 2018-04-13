@@ -1,0 +1,46 @@
+services:
+    nc.base_service:
+        class: DataModelBundle\Service\BaseService
+        calls:
+          - [ 'setLogger', [ '@logger' ]]
+          - [ 'setEntityManager', [ '@doctrine.orm.entity_manager' ]]
+
+    nc.trades_listener_service:
+        class: FeedBundle\Service\TradesListenerService
+        parent: 'nc.base_service'
+        arguments:
+          - '@nc.websocket_client'
+          - '@nc.quote_manager'
+          - '%secret%'
+
+    nc.order_books_consumer:
+        class: FeedBundle\Service\OrderBookConsumer
+        parent: 'nc.base_service'
+        autowire: true
+
+    nc.training_listener_service:
+        class: FeedBundle\Service\TrainingListenerService
+        parent: 'nc.base_service'
+        arguments:
+          - '@nc.repo.training_run'
+          - '@oneup_flysystem.networks_filesystem'
+          - '@oneup_flysystem.public_images_filesystem'
+
+    nc.websocket_client:
+        class: FeedBundle\Service\WebsocketClientService
+        arguments:
+          - '@websocket_client'
+
+    nc.quote_manager:
+        parent: 'nc.base_service'
+        class: FeedBundle\Service\QuoteManagerService
+        arguments:
+          - '@nc.repo.trade'
+          - '@nc.repo.symbol'
+          - '@cache.app'
+
+    nc.queue_info:
+        parent: 'nc.base_service'
+        class: FeedBundle\Service\QueueInfoService
+        arguments:
+          - { train-network: "@old_sound_rabbit_mq.train_network_producer", assemble-training-data: "@old_sound_rabbit_mq.assemble_training_data_producer", request-prediction: "@old_sound_rabbit_mq.request_prediction_producer", trades: "@old_sound_rabbit_mq.trades_listener_consumer", order-books: "@old_sound_rabbit_mq.order_book_listener_consumer" }

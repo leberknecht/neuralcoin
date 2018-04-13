@@ -1,0 +1,138 @@
+{% extends '::base.html.twig' %}
+
+{% block sub_menu %}
+    {% set sub_menu = knp_menu_get('FrontendBundle:Builder:networkMenu', {}, { 'network': trainingRun.network }) %}
+    {{ knp_menu_render(sub_menu)  }}
+{% endblock %}
+
+{% block javascripts %}
+
+    {{ parent() }}
+    <script>
+        var url = window.location.href;
+
+        function updateIfNeeded()
+        {
+            if($('span.glyphicon-ok,span.glyphicon-remove').length == 0) {
+                setTimeout(updateStatus, 2000);
+            }
+        }
+        function updateStatus()
+        {
+            $.ajax(url).done(function(response){
+                var newContent = $(response).find('#network-status-container');
+                $('#network-status-container').replaceWith(newContent);
+            });
+            updateIfNeeded();
+        }
+        updateIfNeeded();
+
+    </script>
+{% endblock javascripts %}
+
+{% block body %}
+    <div class="row" id="network-status-container">
+        <div class="col-md-12">
+            <h1>Training Status</h1>
+            <table class="table">
+                <tr>
+                    <th>Network</th>
+                    <td>{{ trainingRun.network.name }}</td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td>
+                        {{ trainingRun.status }}
+                        {% if trainingRun.status == 'in progress' %}
+                            ...
+                        {% elseif trainingRun.status == 'finished' %}
+                            <span class="glyphicon glyphicon glyphicon-ok"></span>
+                        {% elseif trainingRun.status == 'error' %}
+                            <span class="glyphicon glyphicon glyphicon-remove"></span>
+                        {% elseif trainingRun.status == 'scheduled' %}
+                            <span class="glyphicon glyphicon-hourglass"></span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Scheduled</th>
+                    <td>
+                        {{ trainingRun.createdAt.format('m.d H:i:s') }}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Started</th>
+                    <td>
+                        {% if trainingRun.startedAt %}
+                            {{ trainingRun.startedAt.format('m.d H:i:s') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Training-Data prepared at</th>
+                    <td>
+                        {% if trainingRun.trainingDataPreparedAt %}
+                            {{ trainingRun.trainingDataPreparedAt.format('m.d H:i:s') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Finished</th>
+                    <td>
+                        {% if trainingRun.finishedAt %}
+                            {{ trainingRun.finishedAt.format('m.d H:i:s') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Mean error</th>
+                    <td>
+                        {% if trainingRun.error %}
+                            {{ trainingRun.error }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Training-Set length</th>
+                    <td>
+                        {% if trainingRun.trainingSetLength %}
+                            {{ trainingRun.trainingSetLength }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Training data:</th>
+                    <td>
+                        {% if trainingRun.traningDataFile %}
+                            <a href="{{ path('frontend_network_training_data', {'id': trainingRun.id }) }}">download</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+            <h2>Raw output:</h2>
+                    {% if trainingRun.rawOutput %}
+                        <button class="btn" data-toggle="collapse" data-target="#raw-output">show</button>
+                        <div id="raw-output" data-toggle="true" class="collapse well">
+                            <code >
+                                {{ trainingRun.rawOutput|ansi_to_html|nl2br }}
+                            </code>
+                        </div>
+                    {% else %}
+                        -
+                    {% endif %}
+            </tr>
+        </div>
+    </div>
+{% endblock body %}

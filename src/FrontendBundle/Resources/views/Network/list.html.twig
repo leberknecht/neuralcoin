@@ -1,0 +1,50 @@
+{% extends '::base.html.twig' %}
+
+{% block body %}
+    <h1>Networks</h1>
+    <div class="row">
+        {% for network in networks %}
+            <div class="col-md-12">
+                <div class="well">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h2><a href="{{ path('frontend_network_show', {id: network.id}) }}">{{ network.name }}</a></h2>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tr><th>Success-Rate:</th><td>{{ network.directionHitRatio }}</td></tr>
+                                <tr><th>Last Training run:</th>
+                                    <td>
+                                        {% set trainingRun = network.lastTrainingRun %}
+                                        {% if trainingRun %}
+                                            {{ trainingRun.status }}
+                                            {% if trainingRun.status == 'finished' %}
+                                                (Error: {{ trainingRun.error }})
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr><th>Last Prediction:</th>
+                                    <td>
+                                        {% set prediction = network.lastPrediction %}
+                                        {% if prediction %}
+                                            {{  prediction.predictedChange|round(4) }}&nbsp;/&nbsp;
+                                            {% if prediction.actualChange %}
+                                                {{ prediction.actualChange|round(4) }}
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr><th>Auto-pilot:</th>
+                                    <td>
+                                        <span class="glyphicon glyphicon-{% if network.autopilot %}ok{% else %}remove{% endif %}"></span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock body %}

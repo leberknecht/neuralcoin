@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="{{ imageWidht }}" height="{{ imageHeight }}">
+    {% for connection in connections %}
+        <line
+                x1="{{ connection.x1 }}"
+                y1="{{ connection.y1 }}"
+                x2="{{ connection.x2 }}"
+                y2="{{ connection.y2 }}"
+                style="stroke:rgb(0,0,0);stroke-width:{{ (connection.weight * 2)|round }}" />
+    {% endfor %}
+    {% for nodeInfos in layers %}
+        {% for nodeInfo in nodeInfos.nodes %}
+            <circle cx="{{ nodeInfo.x }}"
+                    cy="{{ nodeInfo.y }}"
+                    r="{{ nodeRadius }}"
+                    strole-width="10"
+                    stroke="black"
+                    fill="red"
+            />
+        {% endfor %}
+    {% endfor %}
+
+</svg>

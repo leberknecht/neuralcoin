@@ -1,0 +1,85 @@
+frontend_homepage:
+    path:     /status
+    defaults: { _controller: FrontendBundle:Main:index }
+
+frontend_create_network:
+    path:     /network/create
+    defaults: { _controller: FrontendBundle:Network:createNetwork }
+
+frontend_delete_network:
+    path:     /network/{id}/delete
+    defaults: { _controller: FrontendBundle:Network:delete }
+
+frontend_list_network:
+    path:     /network/list
+    defaults: { _controller: FrontendBundle:Network:listNetwork }
+
+
+frontend_network_preview:
+    path:     /network/preview
+    methods:  ['POST']
+    defaults: { _controller: FrontendBundle:Network:previewNetworkData }
+
+frontend_network_reset:
+    path:     /network/{id}/reset
+    defaults: { _controller: FrontendBundle:Network:reset }
+
+frontend_network_show:
+    path:     /network/{id}/show
+    defaults: { _controller: FrontendBundle:Network:showNetwork }
+
+frontend_network_train:
+    path:     /network/{id}/train
+    defaults: { _controller: FrontendBundle:Network:trainNetwork }
+
+frontend_network_predict_json:
+    path:     /network/{id}/predict/json
+    defaults: { _controller: FrontendBundle:Network:predictJson }
+
+frontend_network_predict:
+    path:     /network/{id}/predict
+    defaults: { _controller: FrontendBundle:Network:predict }
+
+frontend_prediction_status:
+    path:     /prediction/{id}/show
+    defaults: { _controller: FrontendBundle:Network:predictionStatus }
+
+frontend_network_training_status:
+    path:     /training/{id}/status
+    defaults: { _controller: FrontendBundle:TrainingRun:showTrainingStatus }
+
+frontend_network_training_data:
+    path:     /training/{id}/data
+    defaults: { _controller: FrontendBundle:TrainingRun:getTrainingDataFile }
+
+frontend_network_plot:
+    path:     /network/{id}/plot
+    defaults: { _controller: FrontendBundle:Network:plotNetwork }
+
+frontend_network_edit:
+    path:     /network/{id}/edit
+    defaults: { _controller: FrontendBundle:Network:editNetwork }
+
+frontend_exchange_symbols:
+    path:     /symbols/exchanges/{exchange}
+    defaults: { _controller: FrontendBundle:Network:getSupportedSymbols }
+
+frontend_queue_status:
+    path:     /queue/status
+    defaults: { _controller: FrontendBundle:Queue:getQueueLoad }
+
+trading_tools_main:
+    path:     /
+    defaults: { _controller: FrontendBundle:TradingTools:tradingTools }
+
+trading_tools_known_symbols:
+    path:     /trading-tools/known-symbols
+    defaults: { _controller: FrontendBundle:TradingTools:getKnownSymbols }
+
+trading_tools_high_raises:
+    path:     /trading-tools/high-raises
+    defaults: { _controller: FrontendBundle:TradingTools:getHighRaises }
+
+trading_tools_symbol_data:
+    path:     /trading-tools/symbol-data/{symbol}/{exchange}/{timeOffsetSeconds}
+    defaults: { _controller: FrontendBundle:TradingTools:getSymbolData }

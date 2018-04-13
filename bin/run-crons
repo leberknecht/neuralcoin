@@ -1,0 +1,5 @@
+#!/bin/bash
+chown root:root /etc/crontab
+chmod 644 /etc/crontab
+/usr/sbin/cron
+tail -f /code/var/logs/app_tasks.log

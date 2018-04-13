@@ -1,0 +1,9 @@
+pika
+pybrain
+scipy
+numpy
+pyyaml
+boto
+tflearn
+pathlib
+svgwrite

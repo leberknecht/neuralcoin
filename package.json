@@ -1,0 +1,44 @@
+{
+  "name": "neuralcoin",
+  "version": "0.0.1",
+  "description": "neuralcoin frontend",
+  "main": "index.js",
+  "dependencies": {
+    "browser-sync": "2.7.12",
+    "chalk": "1.0.0",
+    "dev": "^0.1.3",
+    "gulp": "^3.9.1",
+    "gulp-connect-php": "0.0.5",
+    "gulp-if": "1.2.5",
+    "gulp-load-plugins": "1.0.0-rc.1",
+    "gulp-webserver": "0.9.1",
+    "http-proxy": "1.11.1",
+    "https": "^1.0.0",
+    "jquery": "^3.1.1",
+    "less": "~2.5.1",
+    "require-dir": "0.3.0",
+    "yaml": "^0.3.0"
+  },
+  "devDependencies": {
+    "amqplib": "^0.5.1",
+    "autobahn": "^17.5.2",
+    "browser-sync": "~2.7.12",
+    "cloudscraper": "^1.4.1",
+    "fs": "0.0.1-security",
+    "gulp-connect-php": "0.0.5",
+    "js-yaml": "^3.10.0",
+    "jsoni": "0.0.1",
+    "mock-browser": "^0.92.14",
+    "object-assign": "^4.1.1",
+    "pusher-js": "^4.2.1",
+    "request": "^2.81.0",
+    "signalr-client": "0.0.17",
+    "sleep": "^5.1.1",
+    "ws": "^3.2.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "BSD-2-Clause"
+}

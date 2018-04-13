@@ -1,0 +1,44 @@
+services:
+    nc.assemble_training_data_consumer:
+        class: NetworkBundle\Service\AssembleTrainingDataConsumer
+        parent: nc.base_service
+        arguments:
+            - '@nc.repo.network'
+            - '@nc.repo.training_run'
+            - '@nc.network_training'
+            - '@nc.serializer'
+            - '@old_sound_rabbit_mq.train_network_producer'
+
+    nc.network_creator:
+        class: NetworkBundle\Service\NetworkCreatorService
+        parent: nc.base_service
+        arguments:
+            - '@nc.serializer'
+            - '@old_sound_rabbit_mq.create_network_rpc'
+            - '@oneup_flysystem.networks_filesystem'
+
+    nc.network_data:
+        class: NetworkBundle\Service\NetworkDataService
+        parent: nc.base_service
+        autowire: true
+
+    nc.network_training:
+        class: NetworkBundle\Service\NetworkTrainingService
+        parent: nc.base_service
+        arguments:
+            - '@nc.network_data'
+            - '@nc.serializer'
+            - '@old_sound_rabbit_mq.assemble_training_data_producer'
+            - '@oneup_flysystem.networks_filesystem'
+            - '@nc.repo.network'
+
+    nc.prediction:
+        class: NetworkBundle\Service\PredictionService
+        parent: nc.base_service
+        arguments:
+            - '@old_sound_rabbit_mq.prediction_rpc'
+            - '@nc.serializer'
+            - '@nc.network_data'
+            - '@nc.repo.trade'
+            - '@old_sound_rabbit_mq.request_prediction_producer'
+            - '@nc.repo.prediction'

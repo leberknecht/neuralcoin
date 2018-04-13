@@ -1,0 +1,44 @@
+services:
+    nc.repo.trade:
+        class: DataModelBundle\Repository\TradeRepository
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - 'DataModelBundle\Entity\Trade'
+    nc.repo.symbol:
+        class: DataModelBundle\Repository\SymbolRepository
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - 'DataModelBundle\Entity\Symbol'
+    nc.repo.prediction:
+        class: DataModelBundle\Repository\PredictionRepository
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - 'DataModelBundle\Entity\Prediction'
+    nc.repo.network:
+        class: DataModelBundle\Repository\NetworkRepository
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - 'DataModelBundle\Entity\Network'
+
+    nc.repo.training_run:
+        class: DataModelBundle\Repository\TrainingRunRepository
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - 'DataModelBundle\Entity\TrainingRun'
+
+    nc.repo.order_book:
+        class: DataModelBundle\Repository\OrderBookRepository
+        factory: ['@doctrine.orm.default_entity_manager', getRepository]
+        arguments:
+            - 'DataModelBundle\Entity\OrderBook'
+
+    nc.serializer:
+        class: DataModelBundle\Service\SerializerService
+
+    nc.listener.post_persist:
+        class: DataModelBundle\EventListener\PostPersistListener
+        tags:
+            - { name: doctrine.event_listener, event: postPersist }
+
+    nc.date_helper:
+        class: DataModelBundle\Service\DateHelperService

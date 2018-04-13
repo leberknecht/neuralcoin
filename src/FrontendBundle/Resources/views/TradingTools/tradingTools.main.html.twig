@@ -1,0 +1,164 @@
+{% extends '::base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/frontend/css/tradingTools.css') }}">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="{{ asset('js/react.js') }}"></script>
+    <script src="{{ asset('js/react-dom.js') }}"></script>
+    <script src="{{ asset('js/babel.min.js') }}"></script>
+    <script src="{{ asset('js/axios.min.js') }}"></script>
+    <script src="{{ asset('js/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset('bundles/frontend/js/TradingTools.js') }}"></script>
+    <script type="text/babel" src="{{ asset('bundles/frontend/react/tradingTools.jsx') }}"></script>
+    <script src="{{ asset('bundles/frontend/js/FeedTicker.js') }}"></script>
+
+    <script language="JavaScript">
+        $( function() {
+            let availableSymbols = [
+                {% for symbol in knownSymbols %}
+                    "{{ symbol.name }}",
+                {% endfor %}
+            ];
+            $( "#symbol-selector" ).autocomplete({
+                source: availableSymbols,
+                select: function (event, ui) {
+                    let symbolName = ui.item.value;
+                    chartManager.getData(symbolName.replace(/^(BTC|USDT|ETH|XMR|BNB|ETC)/, ""), );
+                }
+            });
+        } );
+
+        $('#ticker-highchangemode-button').trigger('click');
+
+    </script>
+{% endblock %}
+
+{% block body %}
+    <span class="hidden" id="high-raise-update-url" data-value="{{ path('trading_tools_high_raises') }}"></span>
+    <span class="hidden" id="known-exchanges">
+        {% for knownExchange in knownExchanges %}
+            <span class="hidden">{{ knownExchange }}</span>
+        {% endfor %}
+    </span>
+    <div id="trading-tools">
+        <div class="row">
+            <div class="col-md-2">
+                <div class="well" id="feed-ticker-container" data-ticker-host="{{ websocket_server }}">
+                    <h2>High trades
+                        <span class="pull-right small glyphicon glyphicon-cog" data-toggle="collapse" href="#high-raise-config"></span>
+                    </h2>
+
+                    <div id="high-raise-config" class="collapse">
+                        <label for="high-raise-threshold">2 %</label>
+                        <input id="high-raise-threshold" class="range-input" data-label-template="± {value} %" type="range" min="1" max="5" value="2">
+                    </div>
+
+                    <div class="pull-right">
+                        <span id="ticker-highchangemode-button" class="hidden glyphicon glyphicon-fire" data-status="0"></span>
+                        <span id="ticker-pause-button" class="hidden glyphicon glyphicon-pause" data-status="unpaused"></span>
+                    </div>
+                    <div id="container-latest-quotes"></div>
+                    <table class="table" id="latest-quotes-table">
+                        <tr>
+                            <th>Ex</th>
+                            <th>coin</th>
+                            <th>%</th>
+                        </tr>
+                        <tr id="feed-maker-row" class="hidden"></tr>
+                        <tr class="hidden latest-quotes-row">
+                            <td class="exchange-cell"></td>
+                            <td class="symbol-cell small">
+                                <a class="high-raise-symbol" href="#">
+                                </a>
+                            </td>
+                            <td class="price-cell"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <h2 id="current-symbol-name"></h2>
+                <div id="symbol-chart"></div>
+                <small>last 10 minutes</small>
+            </div>
+            <div class="col-md-3">
+                <div class="well">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label for="network-options">available networks:</label>
+                            <select class="form-control" id="network-options" name="network-options">
+                                {% for supportedNetwork in supportedNetworks %}
+                                    <option
+                                            value="{{ supportedNetwork.id }}"
+                                            data-prediction-url="{{ path('frontend_network_predict_json', {id: supportedNetwork.id }) }}"
+                                    >
+                                        {{ supportedNetwork.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-group">
+                                <label for="symbol-selector">available symbols:</label>
+                                <input type="text" size="8" class="form-control" id="symbol-selector" />
+                            </div>
+                            <input type="hidden" id="current-symbol" value="" />
+                            <button class="hidden" id="run-network-button">Run</button>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            {% for supportedNetwork in supportedNetworks %}
+                                <div class="network-info-container hidden" id="{{ supportedNetwork.id }}-info">
+                                    <table class="table">
+                                        <tr><th>Interpolation interval:</th><td>{{ supportedNetwork.interpolationInterval }} seconds</td></tr>
+                                        <tr><th>Input steps:</th><td>{{ supportedNetwork.inputSteps }}</td></tr>
+                                        <tr><th>steps ahead:</th>
+                                            <td>
+                                                {{ supportedNetwork.outputConfig.stepsAhead }}
+                                                (= {{ (supportedNetwork.outputConfig.stepsAhead * supportedNetwork.interpolationInterval) / 60 }} minutes)
+                                            </td>
+                                        </tr>
+                                        <tr><th>Drop/Raise:</th><td>
+                                                {% if supportedNetwork.outputConfig.type == constant('DataModelBundle\\Entity\\OutputConfig::OUTPUT_TYPE_HAS_RAISED_BY') %}
+                                                    Raise
+                                                {% elseif supportedNetwork.outputConfig.type == constant('DataModelBundle\\Entity\\OutputConfig::OUTPUT_TYPE_HAS_DROPPED_BY') %}
+                                                    Drop
+                                                {% else %}
+                                                    unknown (wtf?!)
+                                                {% endif %}
+                                            </td></tr>
+                                    </table>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h2>No</h2>
+                            <div id="prediction-no"></div>
+                            <div id="prediction-no-percentage">&nbsp;</div>
+                        </div>
+                        <div class="col-md-6">
+                            <h2>Yes</h2>
+                            <div id="prediction-yes"></div>
+                            <div id="prediction-yes-percentage">&nbsp;</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row trading-tools-container">
+            <div class="col-md-12">
+                <div class="well">
+                    <div id="root"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock body %}

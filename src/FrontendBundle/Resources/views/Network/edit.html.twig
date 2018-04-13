@@ -1,0 +1,12 @@
+{% extends '::base.html.twig' %}
+
+{% form_theme editForm 'bootstrap_3_layout.html.twig' %}
+
+{% block sub_menu %}
+    {% set sub_menu = knp_menu_get('FrontendBundle:Builder:networkMenu', {}, { 'network': network }) %}
+    {{ knp_menu_render(sub_menu)  }}
+{% endblock %}
+
+{% block body %}
+    {{ form(editForm) }}
+{% endblock %}

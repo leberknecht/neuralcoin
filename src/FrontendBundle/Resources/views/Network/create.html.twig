@@ -1,0 +1,226 @@
+{% extends '::base.html.twig' %}
+
+{% form_theme createForm 'bootstrap_3_layout.html.twig' %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let $interpolateToggle = $('#create_network_form_interpolateInputs');
+        let $interpolateSelect = $('#create_network_form_interpolationInterval');
+        let $typeSelect = $('#create_network_form_outputConfig_type');
+        let $dropRaisedOptionsContainer = $('#create_network_form_outputConfig_thresholdPercentage');
+        let $mostActiveSymbolsCount = $('#create_network_form_mostActiveSymbolsCount');
+        let $useDropoutCheckbox = $('#create_network_form_useDropout');
+        let $useDropoutInput = $('#create_network_form_dropout');
+        let $useOrderBooksCheckbox = $('#create_network_form_useOrderBooks');
+        let $orderBookStepsInput = $('#create_network_form_orderBookSteps');
+        let $useMostActiveSymbolsCheckbox = $('#create_network_form_useMostActiveSymbols');
+        let $symbolsBox = $('#create_network_form_symbols');
+        let $balanceHitsCheckbox = $('#create_network_form_balanceHitsAndFails');
+        let $shuffleTrainingDataCheckbox = $('#create_network_form_shuffleTrainingData');
+        let $customShapeCheckbox = $('#create_network_form_customShape');
+        let $customShapeInput = $('#create_network_form_shape');
+
+        $('#create_network_form_exchange, #create_network_form_useOrderBooks').on('change', function(element) {
+            let $selectBox = $('#create_network_form_exchange');
+
+            let exchangeName = $selectBox.val();
+            if (!exchangeName) {
+                exchangeName = 'all';
+            }
+            $.ajax({
+                url: '/symbols/exchanges/' + exchangeName + '?useOrderBooks=' +
+                ($useOrderBooksCheckbox.is(':checked') ? '1' : '0'),
+                statusCode: {
+                    200: function(response) {
+                        response = JSON.parse(response);
+                        $symbolsBox.find('option').remove();
+                        for (let x = 0; x < response.length; x++) {
+                            let record = response[x];
+                            $symbolsBox.append('<option data-symbol-name="' + record.name + '" value="' + record.id + '">' + record.name + ' (' +
+                                + record.averageStepsPerMinute
+                                + ' trades/ min)</option>');
+                        }
+
+                        $symbolsBox.find('option').first().attr('selected', 'selected');
+                        $symbolsBox.trigger('change');
+                    }
+                }
+            });
+        });
+
+        $interpolateToggle.on('click', function(){
+            if ($interpolateToggle.is(':checked')) {
+                $interpolateSelect.removeAttr('disabled');
+            } else {
+                $interpolateSelect.attr('disabled', 'disabled');
+            }
+        });
+
+        $useDropoutCheckbox.on('click', function(){
+            if ($useDropoutCheckbox.is(':checked')) {
+                $useDropoutInput.removeAttr('disabled');
+            } else {
+                $useDropoutInput.attr('disabled', 'disabled');
+            }
+        });
+
+        $useOrderBooksCheckbox.on('click', function(){
+            if ($useOrderBooksCheckbox.is(':checked')) {
+                $orderBookStepsInput.removeAttr('disabled');
+            } else {
+                $orderBookStepsInput.attr('disabled', 'disabled');
+            }
+        });
+
+        $customShapeCheckbox.on('click', function(){
+            if ($customShapeCheckbox.is(':checked')) {
+                $customShapeInput.removeAttr('disabled');
+            } else {
+                $customShapeInput.attr('disabled', 'disabled');
+            }
+        });
+
+        $useMostActiveSymbolsCheckbox.on('click', function(){
+            if ($useMostActiveSymbolsCheckbox.is(':checked')) {
+                $mostActiveSymbolsCount.removeAttr('disabled');
+                $symbolsBox.attr('disabled', 'disabled');
+            } else {
+                $mostActiveSymbolsCount.attr('disabled', 'disabled');
+                $symbolsBox.removeAttr('disabled');
+            }
+        });
+
+        $interpolateToggle.trigger('click');
+
+        $typeSelect.on('change', function(){
+            if ($typeSelect.val() == '3' && $dropRaisedOptionsContainer.val().indexOf('-') != 0) {
+                $dropRaisedOptionsContainer.val('-' + $dropRaisedOptionsContainer.val());
+
+            }
+            if ($typeSelect.val() == '2' || $typeSelect.val() == '3' ) {
+                $shuffleTrainingDataCheckbox.removeAttr('disabled');
+                $balanceHitsCheckbox.removeAttr('disabled');
+                $dropRaisedOptionsContainer.removeAttr('disabled');
+            } else {
+                $shuffleTrainingDataCheckbox.attr('disabled', 'disabled');
+                $dropRaisedOptionsContainer.attr('disabled', 'disabled');
+                $balanceHitsCheckbox.attr('disabled', 'disabled');
+            }
+        });
+        $typeSelect.trigger('click');
+        $typeSelect.trigger('change');
+        $('.range-input').trigger('change');
+    </script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="{{ asset('bundles/frontend/js/plotly-latest.min.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('bundles/frontend/js/SymbolChart.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+    <div id="create-network-form">
+        <span id="remote-info" class="hidden" data-preview-url="{{ path('frontend_network_preview') }}"></span>
+        {% for symbol in knownSymbols %}
+            <span class="hidden" id="symbol-info-{{ symbol.id }}"
+                  data-symbol-name="{{ symbol.name }}"
+                  data-trades-count="{{ symbol.tradesCount }}"></span>
+        {% endfor %}
+
+        {{ form_errors(createForm) }}
+        {{ form_start(createForm) }}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form_row(createForm.name) }}
+                        {{ form_row(createForm.exchange) }}
+                        {{ form_row(createForm.symbols) }}
+                        {{ form_row(createForm.useMostActiveSymbols) }}
+                        {{ form_row(createForm.mostActiveSymbolsCount) }}
+                        {{ form_row(createForm.separateInputSymbols) }}
+                        {{ form_row(createForm.useOrderBooks) }}
+                        {{ form_row(createForm.orderBookSteps) }}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(createForm.interpolateInputs) }}
+                                {{ form_row(createForm.autopilot) }}
+                                {{ form_row(createForm.valueType) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(createForm.interpolationInterval, {label: 'interval'}) }}
+                                {{ form_row(createForm.timeScope) }}
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_row(createForm.activationFunction) }}
+                        {{ form_row(createForm.optimizer) }}
+                        {{ form_row(createForm.inputSteps) }}
+                        {{ form_row(createForm.hiddenLayers) }}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(createForm.customShape) }}
+                                {{ form_row(createForm.bias) }}
+                                {{ form_row(createForm.useDropout) }}
+                                {{ form_row(createForm.generateImage) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(createForm.shape) }}
+                                {{ form_row(createForm.dropout) }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(createForm.learningRate) }}
+                                {{ form_row(createForm.epochsPerTrainingRun) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(createForm.outputConfig.stepsAhead, {attr: { value: '10' } }) }}
+                                {{ form_row(createForm.outputConfig.type) }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form_row(createForm.outputConfig.thresholdPercentage, {attr: { value: '1.0' } }) }}
+                                {{ form_row(createForm.outputConfig.pricePredictionSymbol, {label: 'Output:'}) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(createForm.shuffleTrainingData) }}
+                                {{ form_row(createForm.balanceHitsAndFails) }}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="col-md-6">
+
+                <div id="stock-chart-preview"></div>
+                <div id="order-book-preview"></div>
+
+                <h3>Training-Data preview (max 3 input steps)</h3>
+                <div id="input-data-shape-info" class="hidden"></div>
+                <div id="bool-hit-info" class="hidden"></div>
+                <div id="training-data-preview-container">
+                    <table class="table-condensed">
+
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                {{ form_rest(createForm) }}
+                {{ form_end(createForm) }}
+            </div>
+        </div>
+    </div>
+
+{% endblock body %}

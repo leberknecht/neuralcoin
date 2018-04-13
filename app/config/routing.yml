@@ -1,0 +1,14 @@
+network:
+    resource: "@NetworkBundle/Resources/config/routing.yml"
+    prefix:   /
+
+feed:
+    resource: "@FeedBundle/Resources/config/routing.yml"
+    prefix:   /
+
+frontend:
+    resource: "@FrontendBundle/Resources/config/routing.yml"
+    prefix:   /
+
+_liip_imagine:
+    resource: "@LiipImagineBundle/Resources/config/routing.xml"

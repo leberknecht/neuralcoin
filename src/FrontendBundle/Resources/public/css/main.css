@@ -1,0 +1,124 @@
+body {
+    padding-top: 20px;
+}
+
+.preview-data-item {
+    font: 10pt arial;
+    padding-right: 10px;
+}
+
+#stock-chart-preview {
+    min-height: 300px;
+}
+
+ul#slideshow {
+    padding: 0;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.sub-menu li {
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    clear: left;
+    width: 100%;
+    margin-bottom: 10px;
+    background-color: #f8f8f8;
+}
+
+.sub-menu .current {
+    background-color: #e1e1e4;
+}
+
+.sub-menu .navbar-nav {
+    float: none;
+    margin: auto;
+}
+
+@media (max-width: 1024px) {
+    .sub-menu .navbar-nav li {
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        clear: none;
+        width: auto;
+        float: left;
+        margin-bottom: 10px;
+        margin-right: 10px;
+        background-color: #f8f8f8;
+    }
+
+    #main-container .container {
+        padding-right: 0;
+        padding-left: 0;
+        margin-left: 0;
+        margin-right: 0;
+        width: auto;
+    }
+}
+
+#prediction-table .glyphicon-ok {
+    color: #0000F0;
+}
+
+#prediction-table .glyphicon-remove {
+    color: #b92c28;
+}
+
+.network-show-data th, .network-show-data td  {
+    font-size: 0.8em;
+}
+
+#training-data-preview-container {
+    overflow-y: scroll;
+    max-height: 400px;
+}
+
+#home-list-view h2
+{
+    font-size: 1.5em;
+}
+
+#home-list-view h3
+{
+    font-size: 1.1em;
+}
+
+#create-network-form label
+{
+    color: rgba(19, 19, 24, 0.82);
+    float: none;
+}
+
+#queue-status-container td {
+    vertical-align: top;
+    font-size: 0.9em;
+}
+
+#raw-output
+{
+    background-color: #000;
+}
+
+#raw-output code
+{
+    padding: 0;
+}
+
+#prediction-no-percentage
+{
+    width: 0.1%;
+    border: 1px solid black;
+    background-color: red;
+}
+
+#prediction-yes-percentage
+{
+    width: 0.1%;
+    border: 1px solid black;
+    background-color: green;
+}
+
+.glyphicon-red
+{
+    color: red;
+}

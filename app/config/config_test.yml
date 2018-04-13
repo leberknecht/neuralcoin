@@ -1,0 +1,72 @@
+imports:
+    - { resource: config_dev.yml }
+
+framework:
+    test: ~
+    session:
+        storage_id: session.storage.mock_file
+    profiler:
+        collect: false
+    csrf_protection: false
+    cache:
+        app: cache_mock_service
+web_profiler:
+    toolbar: false
+    intercept_redirects: false
+
+swiftmailer:
+    disable_delivery: true
+
+parameters:
+    database_name: neuralcoin_test
+
+services:
+    old_sound_rabbit_mq.create_network_rpc:
+        class: Tests\Functional\Fixtures\Service\FakeCreateNetworkProducer
+        arguments:
+          - '@old_sound_rabbit_mq.connection.default'
+
+    old_sound_rabbit_mq.prediction_rpc:
+        class: Tests\Functional\Fixtures\Service\FakeGetPredictionProducer
+        arguments:
+          - '@old_sound_rabbit_mq.connection.default'
+
+    old_sound_rabbit_mq.request_prediction_producer:
+        class: Tests\Functional\Fixtures\Service\FakeRequestPredictionProducer
+        arguments:
+          - '@old_sound_rabbit_mq.connection.default'
+
+    old_sound_rabbit_mq.train_network_producer:
+        class: Tests\Functional\Fixtures\Service\FakeTrainNetworkProducer
+        arguments:
+          - '@old_sound_rabbit_mq.connection.default'
+
+    old_sound_rabbit_mq.assemble_training_data_producer:
+        class: Tests\Functional\Fixtures\Service\FakeTrainNetworkProducer
+        arguments:
+          - '@old_sound_rabbit_mq.connection.default'
+
+    old_sound_rabbit_mq.trades_listener_consumer:
+        class: Tests\Functional\Fixtures\Service\FakeTrainNetworkProducer
+        arguments:
+          - '@old_sound_rabbit_mq.connection.default'
+
+    old_sound_rabbit_mq.order_book_listener_consumer:
+        class: Tests\Functional\Fixtures\Service\FakeTrainNetworkProducer
+        arguments:
+          - '@old_sound_rabbit_mq.connection.default'
+
+    websocket_client:
+        class: Tests\Functional\Fixtures\Service\FakeWebsocketClient
+        arguments:
+            - '%websocket_connection%'
+
+oneup_flysystem:
+    adapters:
+        local_filesystem_adapter:
+            local:
+                directory: '%kernel.root_dir%/../tests/Functional/Fixtures/networks'
+
+    filesystems:
+        networks:
+            adapter: local_filesystem_adapter

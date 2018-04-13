@@ -1,0 +1,25 @@
+# Learn more about services, parameters and containers at
+# http://symfony.com/doc/current/service_container.html
+parameters:
+#    parameter_name: value
+
+services:
+    nc.network_data_s3_client:
+        class: Aws\S3\S3Client
+        arguments:
+            -
+                version: '2006-03-01' # or 'latest'
+                region: "eu-central-1"
+                credentials:
+                    key: "%aws_key%"
+                    secret: "%aws_secret%"
+
+    websocket_client:
+        class: WebSocket\Client
+        arguments:
+            - '%websocket_connection%'
+
+    ansi2html.twig_extension:
+        class:        SensioLabs\AnsiConverter\Bridge\Twig\AnsiExtension
+        tags:
+             - { name: 'twig.extension' }

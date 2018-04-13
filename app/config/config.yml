@@ -1,0 +1,212 @@
+imports:
+    - { resource: parameters.yml }
+    - { resource: security.yml }
+    - { resource: services.yml }
+    - { resource: "@FrontendBundle/Resources/config/services.yml" }
+    - { resource: "@FeedBundle/Resources/config/services.yml" }
+    - { resource: "@DataModelBundle/Resources/config/services.yml" }
+    - { resource: "@NetworkBundle/Resources/config/services.yml" }
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# http://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+    locale: en
+    network_files_path: '%kernel.root_dir%/../%local_network_data_directory%'
+
+framework:
+    #esi:             ~
+    #translator:      { fallbacks: ["%locale%"] }
+    secret:          "%secret%"
+    router:
+        resource: "%kernel.root_dir%/config/routing.yml"
+        strict_requirements: ~
+    form:            ~
+    csrf_protection: ~
+    validation:      { enable_annotations: true }
+    #serializer:      { enable_annotations: true }
+    templating:
+        engines: ['twig']
+    default_locale:  "%locale%"
+    trusted_hosts:   ~
+    trusted_proxies: ~
+    session:
+        # http://symfony.com/doc/current/reference/configuration/framework.html#handler-id
+        handler_id:  session.handler.native_file
+        save_path:   "%kernel.root_dir%/../var/sessions/%kernel.environment%"
+    fragments:       ~
+    http_method_override: true
+    assets: ~
+    php_errors:
+        log: true
+    cache:
+        app: cache.adapter.redis
+        default_redis_provider: "redis://%redis_host%"
+
+# Twig Configuration
+twig:
+    debug:            "%kernel.debug%"
+    strict_variables: "%kernel.debug%"
+    globals:
+        websocket_server: '%websocket_connection%'
+
+# Doctrine Configuration
+doctrine:
+    dbal:
+        driver:   pdo_mysql
+        host:     "%database_host%"
+        port:     "%database_port%"
+        dbname:   "%database_name%"
+        user:     "%database_user%"
+        password: "%database_password%"
+        charset:  UTF8
+        logging: false
+        # if using pdo_sqlite as your database driver:
+        #   1. add the path in parameters.yml
+        #     e.g. database_path: "%kernel.root_dir%/data/data.db3"
+        #   2. Uncomment database_path in parameters.yml.dist
+        #   3. Uncomment next line:
+        #     path:     "%database_path%"
+
+    orm:
+        auto_generate_proxy_classes: "%kernel.debug%"
+        naming_strategy: doctrine.orm.naming_strategy.underscore
+        auto_mapping: true
+        result_cache_driver:
+          type: redis
+          host: '%redis_host%'
+
+# Swiftmailer Configuration
+swiftmailer:
+    transport: "%mailer_transport%"
+    host:      "%mailer_host%"
+    username:  "%mailer_user%"
+    password:  "%mailer_password%"
+    spool:     { type: memory }
+
+old_sound_rabbit_mq:
+    connections:
+        default:
+            host:     '%rabbitmq_host%'
+            port:     5672
+            user:     '%rabbitmq_user%'
+            password: '%rabbitmq_password%'
+            vhost:    '/'
+            lazy:     false
+            connection_timeout: 1
+            read_write_timeout: 1
+
+            # requires php-amqplib v2.4.1+ and PHP5.4+
+            keepalive: false
+
+            # requires php-amqplib v2.4.1+
+            heartbeat: 0
+    producers:
+        train_network:
+            connection:       default
+            exchange_options: {name: 'train-network', type: direct, durable: false}
+            queue_options:    {name: 'train-network', durable: false}
+        assemble_training_data:
+            connection:       default
+            exchange_options: {name: 'assemble-training-data', type: direct }
+            queue_options:    {name: 'assemble-training-data' }
+        request_prediction:
+            connection:       default
+            exchange_options: {name: 'request-prediction', type: direct }
+            queue_options:    {name: 'request-prediction' }
+    rpc_clients:
+        create_network:
+            connection:       default
+            unserializer:     json_decode
+            lazy:             true
+            direct_reply_to:  false
+        prediction:
+            connection:       default
+            unserializer:     json_decode
+            lazy:             true
+            direct_reply_to:  false
+
+    consumers:
+        trades_listener:
+            connection:       default
+            exchange_options: {name: 'trades', type: direct }
+            queue_options:    {name: 'trades', durable: false}
+            callback:         nc.trades_listener_service
+        order_book_listener:
+            connection:       default
+            exchange_options: {name: 'order-books', type: direct }
+            queue_options:    {name: 'order-books', durable: false}
+            callback:         nc.order_books_consumer
+        training_listener:
+            connection:       default
+            exchange_options: {name: 'training-status', type: direct }
+            queue_options:    {name: 'training-status', durable: false}
+            callback:         nc.training_listener_service
+        assemble_training_data:
+            connection:       default
+            exchange_options: {name: 'assemble-training-data', type: direct }
+            queue_options:    {name: 'assemble-training-data' }
+            callback:         nc.assemble_training_data_consumer
+        request_prediction:
+            connection:       default
+            exchange_options: {name: 'request-prediction', type: direct }
+            queue_options:    {name: 'request-prediction' }
+            callback:         nc.prediction
+
+# app/config/config.yml
+knp_menu:
+    # use "twig: false" to disable the Twig extension and the TwigRenderer
+    twig:
+        template: FrontendBundle::menu.html.twig
+        #template: '@KnpMenu/menu.html.twig'
+    #  if true, enables the helper for PHP templates
+    templating: false
+    # the renderer to use, list is also available by default
+    default_renderer: twig
+
+
+oneup_flysystem:
+    adapters:
+        local_filesystem_adapter:
+            local:
+                directory: '%network_files_path%'
+        local_public_images_adapter:
+            local:
+                directory: '%kernel.root_dir%/../web/images/'
+        s3_filesystem_adapter:
+            awss3v3:
+                client: nc.network_data_s3_client
+                bucket: '%aws_s3_bucket%'
+                prefix: ~
+
+    filesystems:
+        networks:
+            adapter: "%network_data_adapter%"
+        public_images:
+            adapter: local_public_images_adapter
+
+liip_imagine :
+    resolvers :
+        default :
+            web_path : ~
+
+    filter_sets :
+        cache : ~
+        network_thumb :
+            quality : 100
+
+            # list of transformations to apply (the "filters")
+            filters :
+                # create a thumbnail: set size to 120x90 and use the "outbound" mode
+                # to crop the image when the size ratio of the input differs
+                scale: { to: 0.3 }
+
+monolog:
+    handlers:
+        main:
+            type: stream
+            path: "%kernel.logs_dir%/%kernel.environment%.log"
+            level: warning
+        console:
+            type:   console
+            level: warning
+            channels: [!event, !doctrine]

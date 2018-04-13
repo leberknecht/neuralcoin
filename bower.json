@@ -1,0 +1,25 @@
+{
+  "name": "neuralcoin",
+  "version": "0.0.1",
+  "authors": [
+    "delf.tonder <delf.tonder@gmx.de>"
+  ],
+  "description": "nn-charts allows you to play with neural networks and stocks",
+  "main": "neuralcoin_main",
+  "moduleType": [
+    "node"
+  ],
+  "license": "MIT",
+  "homepage": "http://gnubbel.me",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.4.1",
+    "jquery": "~2.1.4"
+  }
+}

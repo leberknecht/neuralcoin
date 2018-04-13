@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        {% block stylesheets %}{% endblock %}
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
+        <link rel="stylesheet" href="{{ asset('assets/vendor/bootstrap/dist/css/bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/vendor/bootstrap/dist/css/bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('bundles/frontend/css/main.css') }}">
+        <link rel="stylesheet" href="{{ asset('bundles/frontend/css/jquery-ui.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('bundles/frontend/css/jquery-ui.theme.min.css') }}">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <div class="container" id="main-container">
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <!-- Brand and toggle get grouped for better mobile display -->
+                    <div class="navbar-header">
+
+                        <a class="navbar-brand" href="#" >
+                            <img style="width: 40px" class="pull-left" src="{{ asset('bundles/frontend/images/bitcoin-logo.svg') }}">
+
+                            Neuralcoin
+                        </a>
+
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".main-navbar">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                    </div>
+
+                    <!-- Collect the nav links, forms, and other content for toggling -->
+                    <div class="navbar-collapse collapse main-navbar" >
+                        {{ knp_menu_render('FrontendBundle:Builder:mainMenu', {'currentClass': 'active'}) }}
+                    </div>
+                </div>
+            </nav>
+            {% set subMenu = block('sub_menu') %}
+            <div class="row">
+                {% set bodyColWidth = 12 %}
+                {% if subMenu is not empty %}
+                    {% set bodyColWidth = 11 %}
+                    <div class="col-md-1 sub-menu">
+                        {{ subMenu|raw }}
+                    </div>
+                {% endif %}
+                <div class="col-md-{{ bodyColWidth }}">
+                    {% for flash_message in app.session.flashBag.get('notice') %}
+                        <div class="row"><div class="col-md-12"><div class="alert alert-success">
+                                    {{ flash_message|raw }}
+                                </div></div></div>
+                    {% endfor %}
+                    {% for flash_message in app.session.flashBag.get('warning') %}
+                        <div class="row"><div class="col-md-12"><div class="alert alert-warning">
+                                    {{ flash_message|raw }}
+                                </div></div></div>
+                    {% endfor %}
+                    {% for flash_message in app.session.flashBag.get('error') %}
+                        <div class="row"><div class="col-md-12"><div class="alert alert-danger">
+                                    {{ flash_message|raw }}
+                                </div></div></div>
+                    {% endfor %}
+
+                    {% if subMenu is not empty  %}
+                        <div class="row">
+                            <div class="col-md-12">
+                    {% endif %}
+
+                    {% block body %}{% endblock %}
+                    {% if subMenu is not empty  %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <script src="{{ asset('assets/vendor/jquery/dist/jquery.min.js') }}"></script>
+        <script src="{{ asset('js/date.format.js') }}"></script>
+        <script src="{{ asset('assets/vendor/bootstrap/js/tooltip.js') }}"></script>
+        <script src="{{ asset('assets/vendor/bootstrap/js/transition.js') }}"></script>
+        <script src="{{ asset('assets/vendor/bootstrap/js/collapse.js') }}"></script>
+        <script src="{{ asset('bundles/frontend/js/global.js') }}"></script>
+
+        {% block javascripts %}{% endblock %}
+        <script>
+            $(document).ready(function(){
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+        </script>
+    </body>
+</html>

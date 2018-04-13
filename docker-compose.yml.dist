@@ -1,0 +1,248 @@
+version: '3'
+services:
+#
+# nodejs scraper
+#
+  nc_scraper_bitstamp:
+    build: docker/nodejs
+    restart: unless-stopped
+    links:
+      - nc_rabbitmq
+    volumes:
+      - ./:/code
+    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/bitstamp-feed.js
+
+  nc_scraper_bitfinex:
+    build: docker/nodejs
+    restart: unless-stopped
+    links:
+      - nc_rabbitmq
+    volumes:
+      - ./:/code
+    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/bitfinex-feed.js
+
+  nc_scraper_poloniex:
+    build: docker/nodejs
+    restart: unless-stopped
+    links:
+      - nc_rabbitmq
+    volumes:
+      - ./:/code
+    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/poloniex-feed.js
+
+#  nc_scraper_binance:
+#    build: docker/nodejs
+#    restart: unless-stopped
+#    links:
+#      - nc_rabbitmq
+#    volumes:
+#      - ./:/code
+#    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/binance.js
+
+  nc_scraper_bittrex:
+    build: docker/nodejs
+    restart: unless-stopped
+    links:
+      - nc_rabbitmq
+    volumes:
+      - ./:/code
+    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/bittrex-feed.js
+
+  nc_scraper_bittrex_order_book:
+    build: docker/nodejs
+    restart: unless-stopped
+    links:
+      - nc_rabbitmq
+    volumes:
+      - ./:/code
+    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/bittrex-orderbook.js
+
+
+#
+# PHP related
+#
+  nc_trades_broker:
+    build: docker/php
+    user: www-data
+    links:
+      - nc_rabbitmq
+      - nc_websocket_server
+      - nc_db
+    volumes:
+      - ./:/code
+      - ./var/log:/code/var/logs
+    restart: unless-stopped
+    command: wait-for-it nc_rabbitmq:5672 -- wait-for-it nc_db:3306 -- wait-for-it -t 30 nc_websocket_server:8081 -- bin/env-console rabbitmq:consumer trades_listener -m 50000 -vvv
+
+  nc_order_book_consumer:
+    build: docker/php
+    user: www-data
+    links:
+      - nc_rabbitmq
+      - nc_db
+    volumes:
+      - ./:/code
+      - ./var/log:/code/var/logs
+    restart: unless-stopped
+    command: wait-for-it nc_rabbitmq:5672 -- wait-for-it nc_db:3306 -- bin/env-console rabbitmq:consumer order_book_listener -m 50 -vvv
+
+
+  nc_training_status_listener:
+    build: docker/php
+    user: www-data
+    links:
+      - nc_rabbitmq
+      - nc_websocket_server
+      - nc_db
+    volumes:
+      - ./:/code
+      - ./var/networks:/code/var/network-data
+      - ./var/log:/code/var/logs
+      - ./var/shared-images:/code/web/images
+    restart: unless-stopped
+    command: wait-for-it nc_rabbitmq:5672 -- wait-for-it nc_db:3306 -- bin/env-console rabbitmq:consumer training_listener -m 10 -v
+
+  nc_training_data_assembler:
+    build: docker/php
+    user: www-data
+    links:
+      - nc_rabbitmq
+      - nc_websocket_server
+      - nc_db
+    volumes:
+      - ./:/code
+      - ./var/networks:/code/var/network-data
+      - ./var/log:/code/var/logs
+    restart: unless-stopped
+    command: wait-for-it nc_rabbitmq:5672 -- wait-for-it nc_db:3306 -- bin/env-console rabbitmq:consumer assemble_training_data -m 10 -v
+
+  nc_prediction_processor:
+    build: docker/php
+    user: www-data
+    links:
+      - nc_rabbitmq
+      - nc_websocket_server
+      - nc_db
+    volumes:
+      - ./:/code
+      - ./var/networks:/code/var/network-data
+      - ./var/log:/code/var/logs
+    restart: unless-stopped
+    command: wait-for-it nc_rabbitmq:5672 -- wait-for-it nc_db:3306 -- bin/env-console rabbitmq:consumer request_prediction -m 10 -v
+
+  nc_phpfpm:
+    build: docker/php
+    user: www-data
+    links:
+      - nc_rabbitmq
+      - nc_db
+      - nc_redis
+    volumes:
+      - ./:/code
+      - composer_cache:/var/www/.composer
+      - ./var/networks:/code/var/network-data
+      - ./var/log:/code/var/logs
+      - ./var/shared-images:/code/web/images
+      - ./docker/php/phpfpm.conf:/usr/local/etc/php-fpm.d/www.conf
+    command: wait-for-it nc_db:3306 -- wait-for-it nc_rabbitmq:5672 -- php-fpm
+
+  nc_websocket_server:
+    build: docker/nodejs
+    user: www-data
+    ports:
+      - '8081:8081'
+    volumes:
+      - ./:/code
+      - ./var/networks:/code/var/network-data
+      - ./var/log:/code/var/logs
+    restart: unless-stopped
+    command: node /code/nodejs/websocket-server.js
+
+  nc_nginx:
+    build: docker/nginx
+    volumes:
+      - ./:/code
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    environment:
+      - NGINX_HOST=neuralcoin.local
+    links:
+      - nc_phpfpm
+      - nc_websocket_server
+    ports:
+      - '80:80'
+    command: wait-for-it nc_phpfpm:9000 -- wait-for-it nc_websocket_server:8081 -- nginx
+
+  nc_db:
+    build: docker/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    expose:
+      - '3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: mysqld --sql-mode=NO_ENGINE_SUBSTITUTION
+
+  #management is on port 15672
+  nc_rabbitmq:
+    image: rabbitmq:management
+    expose:
+      - '15672'
+      - '5672'
+
+  nc_redis:
+    image: redis:3.2
+
+
+#
+# python services
+#
+  nc_network_creator:
+    build: docker/python
+    user: www-data
+    links:
+      - nc_rabbitmq
+    volumes:
+      - ./:/code
+      - ./var/networks:/code/var/network-data
+    restart: unless-stopped
+    command: wait-for-it nc_rabbitmq:5672 -- python -u python/consume-create-network.py
+
+  nc_network_trainer:
+    build: docker/python
+    user: www-data
+    links:
+      - nc_rabbitmq
+    volumes:
+      - ./:/code
+      - ./var/networks:/code/var/network-data
+    restart: unless-stopped
+    command: wait-for-it nc_rabbitmq:5672 -- python -u python/consume-train-network.py
+
+  nc_get_prediction:
+    build: docker/python
+    user: www-data
+    restart: unless-stopped
+    links:
+      - nc_rabbitmq
+    volumes:
+      - ./:/code
+      - ./var/networks:/code/var/network-data
+    command: wait-for-it nc_rabbitmq:5672 -- python -u python/consume-get-prediction.py
+
+  nc_cron:
+    build: docker/php
+    user: root
+    restart: unless-stopped
+    links:
+      - nc_db
+      - nc_rabbitmq
+      - nc_redis
+    volumes:
+      - ./:/code
+      - ./var/log:/code/var/logs
+      - ./docker/crontab:/etc/crontab
+    command: wait-for-it nc_db:3306 -- wait-for-it nc_rabbitmq:5672 -- bin/run-crons
+
+volumes:
+  mysql_data:
+  composer_cache:

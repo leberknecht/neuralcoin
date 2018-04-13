@@ -1,0 +1,210 @@
+{% extends '::base.html.twig' %}
+
+{% block sub_menu %}
+    {% set sub_menu = knp_menu_get('FrontendBundle:Builder:networkMenu', {}, {'network': network}) %}
+    {{ knp_menu_render(sub_menu)  }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript" src="{{ asset('js/fadeSlideShow-minified.js') }}"></script>
+    <script src="{{ asset('js/jquery.lazyload.js') }}"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="{{ asset('bundles/frontend/js/PredictionChart.js') }}"></script>
+    <script>
+        $( window ).resize(function() {
+            var screenWidth = $(window).width();
+            var screenHeight = $(window).height();
+            var height = (screenHeight / 3) ;
+            var width = (screenWidth / 4) ;
+            if (screenWidth < screenHeight) {
+                width = screenWidth - 20;
+            }
+            jQuery(document).ready(function(){
+                jQuery('#slideshow').fadeSlideShow({
+                    speed: 10,
+                    height: height,
+                    width: width,
+                    addListToId: true,
+                    interval: 1000
+                });
+            });
+        });
+
+        $(window).trigger('resize');
+
+        $(function() {
+
+            $("img.lazy").lazyload({
+                skip_invisible : true
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-12">
+            <h1>{{ network.name }}</h1>
+        </div>
+    </div>
+
+    {% for symbol in network.symbols %}
+        <span id="stock-info stock-info-{{ symbol.id }}" class="hidden"
+              data-name="{{ symbol.name }}"
+        ></span>
+    {% endfor %}
+    <span class="hidden" id="prediction-data" data-chart-data="{{ predictionChartData }}"></span>
+
+
+    <div class="row">
+        <div class="col-md-6">
+            <table class="table">
+                <tr>
+                    <th>Symbols:</th>
+                    <td>
+                        {% for symbol in network.symbols %}
+                            <div>
+                                {{ symbol.name }}
+                            </div>
+                        {% endfor %}
+                    </td>
+                </tr>
+                <tr><th>Interpolate:</th><td><span class="glyphicon glyphicon-{% if network.interpolateInputs %}ok{% else %}remove{% endif %}"></span>
+                </td></tr>
+                <tr><th>Separate Inputs:</th><td><span class="glyphicon glyphicon-{% if network.separateInputSymbols %}ok{% else %}remove{% endif %}"></span></td></tr>
+                <tr><th>Interpolation interval:</th><td>{% if network.interpolationInterval %}{{ network.interpolationInterval }} seconds{% else %}-{% endif %}</td></tr>
+                <tr><th>Hidden layers:</th><td>{{ network.hiddenLayers }}</td></tr>
+                <tr><th>Time scope</th><td>{{ network.timeScope }}</td></tr>
+                <tr><th>Input steps</th><td>{{ network.inputSteps }}</td></tr>
+                <tr><th>Activation function:</th><td>{{ network.activationFunction }}</td></tr>
+                <tr><th>Epochs per training-run:</th><td>{{ network.epochsPerTrainingRun }}</td></tr>
+                <tr><th>Bias:</th><td><span class="glyphicon glyphicon-{% if network.bias %}ok{% else %}remove{% endif %}"></span></td></tr>
+                <tr><th>Dropout:</th><td>
+                    {% if network.useDropout %}
+                        {{ network.dropout }}
+                    {% else %}
+                        <span class="glyphicon glyphicon-remove"></span>
+                    {%  endif %}
+                </td></tr>
+                <tr><th>Learning-Rate:</th><td>{{ network.learningRate }}</td></tr>
+                <tr><th>Optimizer:</th><td>{{ network.optimizer }}</td></tr>
+                <tr><th>Output:</th><td>{{ network.outputConfig.pricePredictionSymbol }}</td></tr>
+                <tr><th>Type:</th><td>{{ network.outputConfig.typeString }}</td></tr>
+                {% if network.outputConfig.type == constant('DataModelBundle\\Entity\\OutputConfig::OUTPUT_TYPE_HAS_RAISED_BY') or
+                network.outputConfig.type == constant('DataModelBundle\\Entity\\OutputConfig::OUTPUT_TYPE_HAS_DROPPED_BY') %}
+                    <tr><th>Threshold:</th><td>{{ network.outputConfig.thresholdPercentage }} %</td></tr>
+                {% endif %}
+                <tr><th>Steps ahead:</th><td>{{ network.outputConfig.stepsAhead }}</td></tr>
+                <tr><th>Values:</th><td>{{ network.valueType }}</span></td></tr>
+                <tr><th>Success rate:</th><td>{{ network.directionHitRatio }} %</td></tr>
+                <tr><th>Auto-Pilot:</th><td><span class="glyphicon glyphicon-{% if network.autopilot %}ok{% else %}remove{% endif %}"></span></td></tr>
+                <tr><th>Balance hits and misses:</th><td><span class="glyphicon glyphicon-{% if network.balanceHitsAndFails %}ok{% else %}remove{% endif %}"></span></td></tr>
+
+            </table>
+        </div>
+        <div class="col-md-6">
+            <div class="row" style="display: flex; align-items: center;">
+                <div class="col-md-12">
+                    <ul id="slideshow">
+                        {% for trainingRun in lastTrainingRuns %}
+                            {% if trainingRun.imagePath %}
+                                <img src="#" class="lazy" data-original="{{ asset('images/' ~ trainingRun.imagePath)|imagine_filter('network_thumb') }}" />
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    <small>Network structure during last 10 training runs</small>
+                </div>
+                <div class="hidden">
+                    <div id="fssPrev" class="glyphicon glyphicon-chevron-left"></div>
+                    <div id="fssPlayPause"></div>
+                    <div id="fssList"></div>
+                    <div id="fssNext" class="glyphicon glyphicon-chevron-right"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="prediction-chart-container"></div>
+                    <small>Prediction success-rate trend for last 2 weeks</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Training Runs</h3>
+            <div>
+                Total: {{ network.trainingRuns|length }}
+            </div>
+
+            <table class="table table-bordered network-show-data">
+                <tr>
+                    <th>Created</th>
+                    <th class="hidden-sm hidden-xs">status</th>
+                    <th>duration</th>
+                    <th>set length</th>
+                    <th>error</th>
+                    <th>details</th>
+                </tr>
+                {% for trainingRun in lastTrainingRuns %}
+                    <tr>
+                        <td>{{ trainingRun.createdAt|date('m.d H:i:s') }}</td>
+                        <td class="hidden-md hidden-sm hidden-xs">{{ trainingRun.status }}</td>
+                        <td>{% if trainingRun.duration %}{{ trainingRun.duration }} s{% endif %}</td>
+                        <td>{% if trainingRun.duration %}{{ trainingRun.trainingSetLength }}{% endif %}</td>
+                        <td>{{ trainingRun.error }}</td>
+                        <td><a href="{{ path('frontend_network_training_status', {'id': trainingRun.id}) }}">details</a></td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="col-md-6">
+            <h3>Predictions</h3>
+            <div>
+                Total: {{ network.predictions|length }}
+            </div>
+            {% set offset = (network.predictions|length)-10 %}
+            {% set offset = offset > 0 ? offset : 0 %}
+            {% set predictions = network.predictions|slice(offset, 10) %}
+            {% set predictions = predictions|reverse %}
+            <table id="prediction-table" class="table table-bordered network-show-data">
+                <tr>
+                    <th>Created</th>
+                    <th>At prediction</th>
+                    <th class="hidden-xs">Predicted</th>
+                    <th class="hidden-xs">Actual</th>
+                    <th>
+                        <span data-toggle="tooltip" data-placement="top"
+                              title="predicted change / actual change">%</span>
+                    </th>
+                    <th><span class="glyphicon glyphicon-transfer" data-toggle="tooltip" data-placement="top"
+                              title="correct direction predicted?"></span></th>
+                    <th>details</th>
+                </tr>
+                {% for prediction in predictions %}
+                    <tr>
+                        <td>{{ prediction.createdAt|date('m.d H:i') }}</td>
+                        <td>
+                            {{ prediction.priceAtPrediction|round(8) }}
+                        </td>
+
+                        <td class="hidden-xs">{{ prediction.predictedValue|round(8) }}</td>
+                        <td class="hidden-xs">{{ prediction.actualPrice|round(8) }}</td>
+                        <td >
+                            {{ prediction.predictedChange|round(4) }}&nbsp/&nbsp
+                            {% if prediction.actualChange %}
+                                {{ prediction.actualChange|round(4) }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if prediction.directionHit is not null %}
+                                <span class="glyphicon glyphicon-{% if prediction.directionHit %}ok{% else %}remove{% endif %}"></span>
+                            {% endif %}
+                        </td>
+                        <td><a href="{{ path('frontend_prediction_status', {'id': prediction.id}) }}">details</a></td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock body %}
