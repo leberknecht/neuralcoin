@@ -19,9 +19,9 @@ Install
 Linux:
 ```bash
 cp docker-compose.yml.dist docker-compose.yml
-docker-compose run --rm nc_phpfpm composer install --prefer-dist
+docker-compose run --rm --user www-data nc_phpfpm composer install --prefer-dist
 docker-compose build
-bin/docker-console doctrine:database:create
+bin/shell.sh bin/console doctrine:database:create
 bin/console-docker doctrine:schema:up --force
 docker-compose up -d
 #if you want entries in /etc/hosts for your containers

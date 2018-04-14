@@ -29,11 +29,12 @@ RUN docker-php-ext-enable imagick
 RUN apt-get install -y libpng-dev
 RUN docker-php-ext-install gd
 
-COPY composer.phar /usr/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
 COPY wait-for-it.sh /usr/bin/wait-for-it
 
 RUN chmod a+x /usr/bin/wait-for-it
-RUN chmod a+x /usr/bin/composer
+RUN chmod a+x /usr/local/bin/composer
 
 RUN chown www-data:www-data /var/www
 
