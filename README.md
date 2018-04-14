@@ -12,8 +12,9 @@ Prerequistis
 ------------
 You need:
 * latest docker and docker-compose version
-* bower
 * gulp + browser-sync will help during local development
+
+To avoid conflicts between host and container NPM modules, please use node ~v9.9.0
 
 Install
 -----
@@ -21,10 +22,11 @@ Linux:
 ```bash
 cp docker-compose.yml.dist docker-compose.yml
 docker-compose run --rm --user www-data nc_phpfpm composer install --prefer-dist
+docker-compose run --rm --user www-data nc_scraper_bittrex yarn install
+docker-compose run --rm --user www-data nc_scraper_bittrex bower install
 docker-compose build
 bin/shell.sh bin/console doctrine:database:create
 bin/shell.sh bin/console doctrine:schema:up --force
-bower install
 docker-compose up -d
 #if you want entries in /etc/hosts for your containers
 sudo bin/docker-ip-helper.sh

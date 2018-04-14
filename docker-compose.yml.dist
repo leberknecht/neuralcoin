@@ -10,7 +10,7 @@ services:
       - nc_rabbitmq
     volumes:
       - ./:/code
-    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/bitstamp-feed.js
+    command: wait-for-it nc_rabbitmq:5672 -- node nodejs/bitstamp-feed.js
 
   nc_scraper_bitfinex:
     build: docker/nodejs
@@ -19,7 +19,7 @@ services:
       - nc_rabbitmq
     volumes:
       - ./:/code
-    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/bitfinex-feed.js
+    command: wait-for-it nc_rabbitmq:5672 -- node nodejs/bitfinex-feed.js
 
   nc_scraper_poloniex:
     build: docker/nodejs
@@ -28,7 +28,7 @@ services:
       - nc_rabbitmq
     volumes:
       - ./:/code
-    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/poloniex-feed.js
+    command: wait-for-it nc_rabbitmq:5672 -- node nodejs/poloniex-feed.js
 
 #  nc_scraper_binance:
 #    build: docker/nodejs
@@ -37,7 +37,7 @@ services:
 #      - nc_rabbitmq
 #    volumes:
 #      - ./:/code
-#    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/binance.js
+#    command: wait-for-it nc_rabbitmq:5672 -- node nodejs/binance.js
 
   nc_scraper_bittrex:
     build: docker/nodejs
@@ -46,7 +46,7 @@ services:
       - nc_rabbitmq
     volumes:
       - ./:/code
-    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/bittrex-feed.js
+    command: wait-for-it nc_rabbitmq:5672 -- node nodejs/bittrex-feed.js
 
   nc_scraper_bittrex_order_book:
     build: docker/nodejs
@@ -55,7 +55,7 @@ services:
       - nc_rabbitmq
     volumes:
       - ./:/code
-    command: wait-for-it nc_rabbitmq:5672 -- node /code/nodejs/bittrex-orderbook.js
+    command: wait-for-it nc_rabbitmq:5672 -- node nodejs/bittrex-orderbook.js
 
 
 #
