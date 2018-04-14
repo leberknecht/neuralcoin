@@ -12,7 +12,8 @@ Prerequistis
 ------------
 You need:
 * latest docker and docker-compose version
-* gulp will help during local development
+* bower
+* gulp + browser-sync will help during local development
 
 Install
 -----
@@ -22,28 +23,23 @@ cp docker-compose.yml.dist docker-compose.yml
 docker-compose run --rm --user www-data nc_phpfpm composer install --prefer-dist
 docker-compose build
 bin/shell.sh bin/console doctrine:database:create
-bin/console-docker doctrine:schema:up --force
+bin/shell.sh bin/console doctrine:schema:up --force
+bower install
 docker-compose up -d
 #if you want entries in /etc/hosts for your containers
 sudo bin/docker-ip-helper.sh
-bower install
 gulp
 ```
 
-Mac: 
+Mac:
+Mostly the same, but use 
 ```bash
-cp docker-compose.yml.dist docker-compose.yml
 docker-machine start neuralcoin
 eval $(docker-machine env neuralcoin)
-docker-compose run --rm nc_phpfpm composer install --prefer-dist
-docker-compose up -d
 bin/docker-ip-helper.sh $(docker-machine ip neuralcoin)
-bin/docker-console doctrine:database:create
-bin/console-docker doctrine:schema:up --force
-gulp
 ```
 
-The open <http://neuralcoin.local/status> (htaccess is testing/testing)
+The open <http://neuralcoin.local/status>
 You should see some trade-activity in the ticker on the right.
 If so, we are almost there. Just let the setup run for 10 minutes or so, then fire the command 
 
