@@ -1,6 +1,6 @@
 const MessagePusher = require('./MessagePusher');
 const process = require('process');
-let  bittrex = require('./node.bittrex.api.js');
+let  bittrex = require('node.bittrex.api');
 let  yaml = require('js-yaml');
 let  fs = require('fs');
 

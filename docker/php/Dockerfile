@@ -32,9 +32,11 @@ RUN docker-php-ext-install gd
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 COPY wait-for-it.sh /usr/bin/wait-for-it
+COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod a+x /usr/bin/wait-for-it
 RUN chmod a+x /usr/local/bin/composer
+RUN chmod a+x /entrypoint.sh
 
 RUN chown www-data:www-data /var/www
 
@@ -48,3 +50,5 @@ RUN echo "memory_limit=-1" > /usr/local/etc/php/conf.d/no_memory_limit.ini
 WORKDIR /code
 
 VOLUME /var/www
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/bin/bash", "-i", "-c", "/usr/local/sbin/php-fpm"]

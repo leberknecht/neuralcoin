@@ -1,6 +1,7 @@
 FROM node:9.9.0
 
 RUN npm install -g yarn
+RUN npm install -g bower
 RUN mkdir /var/www/.cache/yarn -p
 RUN chown www-data:www-data /var/www -R
 
