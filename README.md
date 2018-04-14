@@ -37,6 +37,23 @@ e.g. a week, your network wont be usable on the dashboard (as we request predict
 and alone assembling the training-data for a one-week scope will require longer). 
 A more-helpful documentation will be added soonish.
 
+Regarding Order-Books: The order-books are currently only for the following symbols on bittrex:
+
+* BTC-LTC
+* BTC-BCC
+* BTC-XRP
+* BTC-XVG
+* BTC-RDD
+* BTC-NXT
+* BTC-CVC
+* BTC-HMQ
+* BTC-DOGE
+* BTC-ETH
+* BTC-DGB
+* BTC-SC
+* BTC-NAV
+* BTC-VTC
+
 Prerequistis
 ------------
 You need:
